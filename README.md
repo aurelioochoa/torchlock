@@ -20,9 +20,8 @@ Built and tested on an **iPhone 4 (iPhone3,2), iOS 6.1.3**.
   camera doesn't stream frames while the light is on.
 - **Doesn't let the screen dim right after a tap.** A tap counts as activity,
   so the lock screen dim timer restarts.
-- **Turns the torch off when you unlock.** To keep it on, set
-  `TurnOffOnUnlock` to `false` in
-  `/var/mobile/Library/Preferences/com.aurelio.torchlock.plist`.
+- **Turns the torch off when you unlock.** You can keep it on instead, see
+  [Options](#options).
 - **Adds an Activator action.** "Toggle Flashlight" (`com.aurelio.torchlock.toggle`)
   appears under *TorchLock* in Activator, so you can give it a gesture for use
   while unlocked.
@@ -41,21 +40,94 @@ On the PC:
 - `git`, `curl`, `make`, `perl`
 - libimobiledevice, for `iproxy` (USB to SSH)
 
-## Quick start
+## Install
+
+### 1. Remove FlashLock
+
+TorchLock declares `Conflicts: com.filippobiga.flashlock`, and dpkg refuses to
+install it while FlashLock is present. That's deliberate: two buttons
+fighting over one torch don't work. Remove FlashLock in Cydia (**Installed →
+FlashLock → Modify → Remove**), or over SSH:
 
 ```sh
-make setup   # Theos + Linux iOS toolchain + iOS 10.3 SDK into ~/theos (skips what exists)
-make build   # release .deb into tweak/packages/
-make run     # build, install on the USB-connected iPhone, respring
-make smoke   # torch on for ~3 seconds, then off
+dpkg -r com.filippobiga.flashlock
 ```
 
-`make` on its own lists every target. `run`, `dev`, `smoke` and `uninstall` start
-`iproxy` on `PORT` (default 2222) and SSH to the phone as root, which asks for
-the root password.
+Skip this step if you never installed FlashLock.
 
-TorchLock declares `Conflicts: com.filippobiga.flashlock`. Remove FlashLock
-before installing, because two buttons fighting over one torch don't work.
+### 2a. From a PC, over USB (recommended)
+
+Plug the iPhone in, then from the repo:
+
+```sh
+make setup   # once: Theos + Linux iOS toolchain + iOS 10.3 SDK into ~/theos
+make run     # build, copy to the phone, dpkg -i, respring
+```
+
+`make run` starts `iproxy` on `PORT` (default 2222), then SSHes to the phone as
+root and asks for the root password once. When it finishes, SpringBoard
+restarts and the lock screen comes back with the button.
+
+### 2b. By hand, with a built package
+
+If you already have a `.deb` (`make build` puts it in `tweak/packages/`), you
+can install it over Wi-Fi with one command. It copies the package, installs it
+and resprings. To find `PHONE_IP`, go to **Settings → Wi-Fi** and tap the blue
+arrow next to your network.
+
+```sh
+ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa root@PHONE_IP \
+    'cat > /tmp/torchlock.deb && dpkg -i /tmp/torchlock.deb && killall -9 SpringBoard' \
+    < tweak/packages/com.aurelio.torchlock_1.0.1_iphoneos-arm.deb
+```
+
+The phone's OpenSSH only offers an `ssh-rsa` host key, which current OpenSSH
+refuses unless those two options are given. Over USB instead of Wi-Fi, run
+`iproxy 2222 22` first and use `-p 2222 root@localhost`.
+
+### 3. Check it worked
+
+Lock the phone and wake it. A round bolt button sits just above the left end
+of the slide-to-unlock bar: tap it to turn the torch on, and tap again to turn
+it off. To check from the PC, run `make smoke`. The torch should light for
+about three seconds.
+
+If the button doesn't appear, confirm the package is installed (`dpkg -s
+com.aurelio.torchlock`). Also check that SpringBoard isn't in Substrate safe
+mode, which shows as a "Safe Mode" alert after a respring.
+
+### Options
+
+**Keep the torch on after unlocking.** By default the torch turns off when you
+unlock. To change that, write the preference over SSH:
+
+```sh
+cat > /var/mobile/Library/Preferences/com.aurelio.torchlock.plist <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>TurnOffOnUnlock</key><false/></dict></plist>
+EOF
+```
+
+It takes effect on the next unlock, with no respring needed. Delete the file to
+go back to the default.
+
+**Toggle with a gesture.** With Activator installed, open
+**Settings → Activator**, choose where the gesture should work (anywhere, the
+home screen, in apps or the lock screen), and pick an event, for example a
+short hold of Volume Up. Then choose **Toggle Flashlight** under **TorchLock**.
+This works with the phone unlocked too, where the lock screen button isn't
+available.
+
+### Uninstall
+
+```sh
+make uninstall                     # from the PC, over USB
+dpkg -r com.aurelio.torchlock && killall -9 SpringBoard   # or on the phone
+```
+
+Or remove **TorchLock** in Cydia. Afterwards you can reinstall FlashLock from
+Cydia if you want it back.
 
 ## Development
 
