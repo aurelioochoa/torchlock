@@ -1,0 +1,10 @@
+Package: com.aurelio.torchlock
+Name: TorchLock
+Version: 1.0.1
+Architecture: iphoneos-arm
+Description: Instant flashlight button on the lock screen (iOS 6). Drives the torch directly, no camera session, no lag.
+Maintainer: Aurelio Ochoa <aurelioochoagomez@hotmail.com>
+Author: Aurelio Ochoa <aurelioochoagomez@hotmail.com>
+Section: Tweaks
+Depends: mobilesubstrate
+Conflicts: com.filippobiga.flashlock
