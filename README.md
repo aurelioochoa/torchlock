@@ -1,5 +1,11 @@
 # TorchLock
 
+![TorchLock: a lock screen flashlight button for jailbroken iOS 6](docs/assets/banner.webp)
+
+*Illustration, not a screenshot. The real button is a dark circle with a white
+bolt when the torch is off, and a white circle with a yellow bolt when it's on.
+The clock and date shown are invented.*
+
 A lock screen flashlight button for **jailbroken iOS 6**, written to replace
 [FlashLock](docs/FLASHLOCK.md), which lags on iOS 6.
 
@@ -207,6 +213,7 @@ tweak/
   TorchLock.plist Substrate filter: SpringBoard only
   control         Debian package metadata
 docs/
+  assets/         README banner (WebP)
   BUILDING.md     toolchain notes
   FLASHLOCK.md    why FlashLock misbehaves on iOS 6
 repo/             the Cydia source, served by GitHub Pages
