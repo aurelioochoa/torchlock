@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>entry</key>
+	<dict>
+		<key>cell</key>
+		<string>PSLinkCell</string>
+		<key>icon</key>
+		<string>/Library/PreferenceLoader/Preferences/TorchLock/TorchLock.png</string>
+		<key>label</key>
+		<string>TorchLock</string>
+	</dict>
+	<key>title</key>
+	<string>TorchLock</string>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Turning TorchLock off removes the lock screen button, ignores the Activator action and turns off the torch if it is on.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Enabled</string>
+			<key>defaults</key>
+			<string>com.aurelio.torchlock</string>
+			<key>key</key>
+			<string>Enabled</string>
+			<key>default</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.aurelio.torchlock/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Lock Screen</string>
+			<key>footerText</key>
+			<string>With Always Show Button off, double-click Home on the lock screen to show the button. While the torch is on, the button always stays visible.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Always Show Button</string>
+			<key>defaults</key>
+			<string>com.aurelio.torchlock</string>
+			<key>key</key>
+			<string>AlwaysShowButton</string>
+			<key>default</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.aurelio.torchlock/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Turn Off on Unlock</string>
+			<key>defaults</key>
+			<string>com.aurelio.torchlock</string>
+			<key>key</key>
+			<string>TurnOffOnUnlock</string>
+			<key>default</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.aurelio.torchlock/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>TorchLock · github.com/aurelioochoa/torchlock</string>
+		</dict>
+	</array>
+</dict>
+</plist>

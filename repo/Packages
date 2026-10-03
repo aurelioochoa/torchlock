@@ -14,3 +14,20 @@ Size: 6106
 MD5sum: 63c9872364ee8058f6e64a3ca8180d56
 SHA1: 93b4b7718717f0ab8436537d529a86c94f9c978c
 SHA256: cf6361a70b671c20349ecd2959139ef2f1510247b2e1926639eba9b1b19e7a99
+
+Package: com.aurelio.torchlock
+Name: TorchLock
+Description: Instant flashlight button on the lock screen (iOS 6). Drives the torch directly, no camera session, no lag.
+Maintainer: Aurelio Ochoa <aurelioochoagomez@hotmail.com>
+Author: Aurelio Ochoa <aurelioochoagomez@hotmail.com>
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader
+Conflicts: com.filippobiga.flashlock
+Architecture: iphoneos-arm
+Version: 1.1.0
+Installed-Size: 84
+Filename: debs/com.aurelio.torchlock_1.1.0_iphoneos-arm.deb
+Size: 17014
+MD5sum: 4aa483c4c3ae802b648b53fbd46e7c4c
+SHA1: 17a100e7bd1e0c90acdc841d9174df25cfcc5197
+SHA256: 6bd4285dc26c9b2e826da3904fd33e99766111a26d2848a31794a4e34c51e627

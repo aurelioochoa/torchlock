@@ -13,6 +13,7 @@
 + (id)sharedAwayController;
 - (UIView *)awayView;
 - (BOOL)isLocked;
+- (BOOL)handleMenuButtonDoubleTap;
 - (void)restartDimTimer;
 @end
 
@@ -33,8 +34,18 @@
 #define TL_PREFS_PATH @"/var/mobile/Library/Preferences/com.aurelio.torchlock.plist"
 #define TL_LISTENER_TOGGLE @"com.aurelio.torchlock.toggle"
 #define TL_LISTENER_DEBUG @"com.aurelio.torchlock.debug"
+// Posted by the Settings pane (PostNotification in TorchLock.plist) after each change.
+#define TL_PREFS_CHANGED "com.aurelio.torchlock/prefs-changed"
 
 static UIButton *tlButton;
+
+// Settings → TorchLock. Every default is YES, so a missing plist means "on".
+static BOOL tlEnabled = YES;
+static BOOL tlAlwaysShowButton = YES;
+static BOOL tlTurnOffOnUnlock = YES;
+// With AlwaysShowButton off, double-clicking Home on the lock screen reveals the
+// button until the lock screen is next shown.
+static BOOL tlRevealed;
 
 static AVCaptureDevice *TLTorchDevice(void) {
 	AVCaptureDevice *fallback = nil;
@@ -53,10 +64,16 @@ static BOOL TLTorchIsOn(void) {
 	return device && [device torchMode] == AVCaptureTorchModeOn;
 }
 
-static BOOL TLTurnOffOnUnlock(void) {
-	NSDictionary *prefs = [NSDictionary dictionaryWithContentsOfFile:TL_PREFS_PATH];
-	id value = [prefs objectForKey:@"TurnOffOnUnlock"];
+static BOOL TLBoolPref(NSDictionary *prefs, NSString *key) {
+	id value = [prefs objectForKey:key];
 	return value ? [value boolValue] : YES;
+}
+
+static void TLLoadPrefs(void) {
+	NSDictionary *prefs = [NSDictionary dictionaryWithContentsOfFile:TL_PREFS_PATH];
+	tlEnabled = TLBoolPref(prefs, @"Enabled");
+	tlAlwaysShowButton = TLBoolPref(prefs, @"AlwaysShowButton");
+	tlTurnOffOnUnlock = TLBoolPref(prefs, @"TurnOffOnUnlock");
 }
 
 static UIImage *TLIcon(BOOL on) {
@@ -91,6 +108,8 @@ static void TLUpdateButton(void) {
 	if (!tlButton)
 		return;
 	BOOL on = TLTorchIsOn();
+	// A lit torch always keeps its button, or there'd be no way to turn it off.
+	[tlButton setHidden:!(tlAlwaysShowButton || tlRevealed || on)];
 	[tlButton setImage:TLIcon(on) forState:UIControlStateNormal];
 	[tlButton setAccessibilityLabel:on ? @"Flashlight on" : @"Flashlight off"];
 }
@@ -129,6 +148,8 @@ static void TLDebugDump(void) {
 	[out appendFormat:@"device=%@ torchMode=%ld torchActive=%d locked=%d\n", device, (long)[device torchMode],
 		[device respondsToSelector:@selector(isTorchActive)] ? [device isTorchActive] : -1, [controller isLocked]];
 	[out appendFormat:@"button=%@ superview=%@\n", tlButton, [tlButton superview]];
+	[out appendFormat:@"prefs: Enabled=%d AlwaysShowButton=%d TurnOffOnUnlock=%d revealed=%d\n",
+		tlEnabled, tlAlwaysShowButton, tlTurnOffOnUnlock, tlRevealed];
 	[out appendFormat:@"%@\n", [awayView recursiveDescription]];
 	[out writeToFile:@"/tmp/torchlock-debug.txt" atomically:YES encoding:NSUTF8StringEncoding error:NULL];
 
@@ -159,6 +180,9 @@ static void TLDebugDump(void) {
 		return;
 	}
 #endif
+	// Disabled means disabled: leave the event unhandled for anything else bound to it.
+	if (!tlEnabled)
+		return;
 	TLToggle();
 	[event setHandled:YES];
 }
@@ -188,6 +212,10 @@ static void TLDebugDump(void) {
 static TorchLockController *tlController;
 
 static void TLInstallButton(SBAwayController *controller) {
+	if (!tlEnabled) {
+		[tlButton removeFromSuperview];
+		return;
+	}
 	if (!TLTorchDevice())
 		return;
 	UIView *awayView = [controller awayView];
@@ -216,23 +244,46 @@ static void TLInstallButton(SBAwayController *controller) {
 	TLUpdateButton();
 }
 
+static void TLPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object,
+		CFDictionaryRef userInfo) {
+	TLLoadPrefs();
+	// Turning TorchLock off also turns off a torch it lit; nothing else would.
+	if (!tlEnabled && TLTorchIsOn())
+		TLSetTorch(NO);
+	TLInstallButton([objc_getClass("SBAwayController") sharedAwayController]);
+}
+
 %hook SBAwayController
 
 - (void)activate {
 	%orig;
+	tlRevealed = NO;
 	TLInstallButton(self);
 }
 
 - (void)didFinishAnimatingOut {
 	%orig;
-	if (TLTurnOffOnUnlock() && TLTorchIsOn())
+	if (tlEnabled && tlTurnOffOnUnlock && TLTorchIsOn())
 		TLSetTorch(NO);
+}
+
+// Returns BOOL on iOS 6.1.3 (type encoding c8@0:4), so the result is passed through.
+- (BOOL)handleMenuButtonDoubleTap {
+	BOOL handled = %orig;
+	if (tlEnabled && !tlAlwaysShowButton) {
+		tlRevealed = YES;
+		TLUpdateButton();
+	}
+	return handled;
 }
 
 %end
 
 %ctor {
 	@autoreleasepool {
+		TLLoadPrefs();
+		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, TLPrefsChanged,
+			CFSTR(TL_PREFS_CHANGED), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 		tlController = [[TorchLockController alloc] init];
 		dlopen("/usr/lib/libactivator.dylib", RTLD_LAZY);
 		LAActivator *activator = [objc_getClass("LAActivator") sharedInstance];

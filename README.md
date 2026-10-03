@@ -18,8 +18,9 @@ Built and tested on an **iPhone 4 (iPhone3,2), iOS 6.1.3**.
 
 ## What it does
 
-- **A button on the lock screen**, always visible, just above the left end of
-  the unlock slider. It shows a dark circle when the torch is off, and a white
+- **A button on the lock screen**, just above the left end of the unlock
+  slider. It's always visible by default, or it can appear only after you
+  double-click Home. It shows a dark circle when the torch is off, and a white
   circle with a yellow bolt when it is on.
 - **Drives the torch directly.** It sets `torchMode` on the camera device, so
   no `AVCaptureSession` runs, nothing blocks SpringBoard's main thread and the
@@ -27,7 +28,9 @@ Built and tested on an **iPhone 4 (iPhone3,2), iOS 6.1.3**.
 - **Doesn't let the screen dim right after a tap.** A tap counts as activity,
   so the lock screen dim timer restarts.
 - **Turns the torch off when you unlock.** You can keep it on instead, see
-  [Options](#options).
+  [Settings](#settings).
+- **A Settings pane**, like FlashLock's. **Settings → TorchLock** has a switch
+  that turns the whole tweak on or off, plus the lock screen options.
 - **Adds an Activator action.** "Toggle Flashlight" (`com.aurelio.torchlock.toggle`)
   appears under *TorchLock* in Activator, so you can give it a gesture for use
   while unlocked.
@@ -127,21 +130,25 @@ If the button doesn't appear, confirm the package is installed (`dpkg -s
 com.aurelio.torchlock`). Also check that SpringBoard isn't in Substrate safe
 mode, which shows as a "Safe Mode" alert after a respring.
 
-### Options
+### Settings
 
-**Keep the torch on after unlocking.** By default the torch turns off when you
-unlock. To change that, write the preference over SSH:
+Open **Settings → TorchLock**. Every switch is on by default, and changes take
+effect straight away, with no respring.
 
-```sh
-cat > /var/mobile/Library/Preferences/com.aurelio.torchlock.plist <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict><key>TurnOffOnUnlock</key><false/></dict></plist>
-EOF
-```
+| Switch | What it does |
+| --- | --- |
+| **Enabled** | Turns TorchLock on or off. When it's off, there's no lock screen button and the Activator action is ignored. A torch TorchLock lit is also turned off. |
+| **Always Show Button** | When this is off, the button stays hidden until you double-click Home on the lock screen. While the torch is on, the button always shows, so you can turn it off. |
+| **Turn Off on Unlock** | Turns the torch off when you unlock. Switch it off to keep the light on after unlocking. |
 
-It takes effect on the next unlock, with no respring needed. Delete the file to
-go back to the default.
+The values are stored in
+`/var/mobile/Library/Preferences/com.aurelio.torchlock.plist` under the keys
+`Enabled`, `AlwaysShowButton` and `TurnOffOnUnlock`. Deleting the file
+restores the defaults.
+
+FlashLock had a fourth switch, *Hide Slider Label*. TorchLock doesn't need it:
+FlashLock's button sat inside the unlock slider and covered its text, but
+TorchLock's sits above it.
 
 **Toggle with a gesture.** With Activator installed, open
 **Settings → Activator**, choose where the gesture should work (anywhere, the
@@ -199,9 +206,19 @@ All on the iPhone 4 / iOS 6.1.3 above:
   and the torch stayed lit until it was toggled off 30 seconds later.
 - The button is drawn above the left end of the unlock slider. This was
   checked with the debug build's screenshot.
+- Each setting was checked by writing the preference file and sending the
+  pane's change notification:
+  - Turning **Enabled** off switched off a lit torch and removed the button,
+    and Activator toggles were then ignored. Turning it back on restored both.
+  - With **Always Show Button** off, the button was hidden, showed while the
+    torch was on, and hid again once it was off.
+  - Deleting the preference file brought the defaults back.
 
-Not yet checked by a test: the unlock-turns-it-off path, which hooks
-`-[SBAwayController didFinishAnimatingOut]`.
+Not yet checked by a test:
+
+- the unlock-turns-it-off path, which hooks `-[SBAwayController didFinishAnimatingOut]`
+- the Home double-click reveal, which hooks `-[SBAwayController handleMenuButtonDoubleTap]`
+- the Settings pane drawn inside the Settings app
 
 ## Layout
 
@@ -212,6 +229,8 @@ tweak/
   Tweak.x         the tweak (Logos)
   TorchLock.plist Substrate filter: SpringBoard only
   control         Debian package metadata
+  layout/Library/PreferenceLoader/Preferences/TorchLock/
+                  Settings pane (PreferenceLoader plist + 29/58px icons)
 docs/
   assets/         README banner (WebP)
   BUILDING.md     toolchain notes
