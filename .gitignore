@@ -5,3 +5,6 @@ tweak/packages/
 
 # Third-party binaries pulled off a device for analysis never belong here
 *.dylib
+
+# ...except the packages the Cydia source publishes
+!repo/debs/*.deb

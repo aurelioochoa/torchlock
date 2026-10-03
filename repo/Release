@@ -1,0 +1,16 @@
+Origin: TorchLock
+Label: TorchLock
+Suite: stable
+Version: 1.0
+Codename: ios
+Architectures: iphoneos-arm
+Components: main
+Description: TorchLock: instant lock screen flashlight for iOS 6
+MD5Sum:
+ 76c188ac1425d4198dc6f66b51affd41      651 Packages
+ 5fea368ceddde97eee43feec33c23b75      431 Packages.gz
+ 68e4aa02aa8acb3b8ef5a8b3fcc8f1c2      493 Packages.bz2
+SHA256:
+ 8b1867483662aeac981d4489685fe83b67052c6162099f58b749ba4481bf5fc3      651 Packages
+ bb248b6361b1b10e49932f55ca1e177a0d5d539d5744cef8c0de19450b406729      431 Packages.gz
+ d75f46bad18c6fda274525b2595c424066d71c2c6cdb2d5c2ef55919ea5d5009      493 Packages.bz2

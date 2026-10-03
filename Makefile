@@ -1,6 +1,6 @@
 PROJECT       := torchlock
 TAGLINE       := instant lock screen flashlight tweak for jailbroken iOS 6
-HELP_VARS      = THEOS=$(THEOS)  PORT=$(PORT)
+HELP_VARS      = THEOS=$(THEOS)  PORT=$(PORT)  CYDIA_URL=$(CYDIA_URL)
 HELP_EXAMPLE   = make run PORT=2222
 HELP_PAD      := 14
 
@@ -75,6 +75,10 @@ export THEOS
 PORT ?= 2222
 TWEAK := tweak
 PKG_DIR := $(TWEAK)/packages
+
+# The Cydia source GitHub Pages serves from this repo (see README, Install).
+CYDIA_DIR := repo
+CYDIA_URL := https://aurelioochoa.github.io/torchlock/repo/
 
 # The 10.3 SDK is the newest that still ships armv7 stubs; the 9.3 one does not
 # link with the toolchain's ld64-609. See docs/BUILDING.md.
@@ -171,6 +175,23 @@ forward:
 	  for i in 1 2 3 4 5 6 7 8 9 10; do (exec 3<>/dev/tcp/127.0.0.1/$(PORT)) 2>/dev/null && exit 0; sleep 0.3; done; \
 	  printf '  $(C_ERR)iproxy did not start on port %s$(C_OFF)\n' '$(PORT)' >&2; exit 1; }
 
+##@ Cydia source
+# A published version is never replaced: phones that installed it would never
+# see the new bytes, and a cached index would hash-fail against them. Builds are
+# not byte-reproducible, so an existing file name is left alone and a new build
+# needs `Version` in tweak/control bumped first.
+.PHONY: cydia
+cydia: build ## Publish the release package into repo/ and rebuild the Cydia index
+	@mkdir -p $(CYDIA_DIR)/debs
+	@deb="$(RELEASE_DEB)"; dest='$(CYDIA_DIR)/debs/'"$$(basename "$$deb")"; \
+	if [ -f "$$dest" ]; then \
+	  printf '  $(C_WARN)%s is already published$(C_OFF) — bump Version in tweak/control to publish a new build.\n' "$$(basename "$$deb")"; \
+	else \
+	  cp "$$deb" "$$dest" && printf '  added %s\n' "$$dest"; \
+	fi
+	python3 scripts/cydia-index.py $(CYDIA_DIR)
+	@printf '\n  commit $(CYDIA_DIR)/ and push; phones refresh from $(CYDIA_URL)\n'
+
 ##@ Gates
 .PHONY: test
 test: ## Run the test suite once
@@ -179,7 +200,8 @@ test: ## Run the test suite once
 .PHONY: check
 # Cleans first so the gate always compiles: up-to-date objects would pass it
 # without -Werror ever seeing the source.
-check: ## Fast gate: compile the tweak with warnings as errors
+check: ## Fast gate: Cydia index matches repo/debs, then a -Werror compile
+	python3 scripts/cydia-index.py $(CYDIA_DIR) --check
 	$(THEOS_MAKE) clean
 	$(THEOS_MAKE) FINALPACKAGE=1 ADDITIONAL_CFLAGS=-Werror
 
