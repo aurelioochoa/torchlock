@@ -7,10 +7,10 @@ Architectures: iphoneos-arm
 Components: main
 Description: TorchLock: instant lock screen flashlight for iOS 6
 MD5Sum:
- de6ebd4bdf0372543941548defcba569     1322 Packages
- 6613a59f86aa6a7dc2886eaedbdf9381      570 Packages.gz
- 4d52f249d0ea9ef86b39b9fb20d8a792      668 Packages.bz2
+ a42e8a733597e954648cdceb2a2b94be     2033 Packages
+ 621a11cd9b74cf1f3a7ca0ff0fa184cb      712 Packages.gz
+ 1da8a7e201766921c6767d8e8534eb97      859 Packages.bz2
 SHA256:
- 955a8416fc3afdf6a3937cf17114f33cb47256ce20dade766e632c4e7d205f29     1322 Packages
- 80c1dcf75412e6102440be87199cf936958854e4fdfd42dba7e6fe6494ee0222      570 Packages.gz
- 8af020d42e200fc8865c0c7e89a269b360007dbca7f0b786402f39133d35f48e      668 Packages.bz2
+ 3571db1818b4763d58a96fdf071383416e7bf321c6327b3616930820f354f21e     2033 Packages
+ 6d0b5850a8458c20a17c83cbb66e2ee05fcd52051ed41ddb4d1c1949cf69c8e8      712 Packages.gz
+ 2b0f3e6ed9296ca136dfc4afd5d82ba4dde84a84421e1ea8c4750a2429a07a17      859 Packages.bz2

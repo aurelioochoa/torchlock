@@ -54,6 +54,50 @@ doesn't load), re-sign on the phone with `ldid -S` on the installed dylib.
 Theos falls back to its bundled `dm.pl` when `dpkg-deb` is missing, so the PC
 doesn't need dpkg installed.
 
+## Notification Center on iOS 6
+
+The optional button uses a fixed bar in `SBBulletinListView`'s sliding panel,
+just above its bottom grabber. It stays outside the table so it remains reachable
+while notifications scroll. The bar reserves bottom content and scroll-indicator
+insets; disabling it removes only that reserved space. Existing table headers
+and footers remain untouched.
+
+The bar is transparent and only its button accepts touches. It draws no linen
+or other background, so Notification Center's native shading shows through.
+
+The device checks verify that the button receives touches at the bottom, stays
+fixed during scrolling, and leaves room for the final notification to scroll
+above it. A non-empty header fixture checks that existing content stays in place.
+
+`DEBUG=1` includes `tests/DeviceProbe.m` for the automated device checks.
+Release packages omit this probe; `scripts/package-check.py` verifies that
+against a debug package as a positive control, along with gzip packaging,
+armv7 architecture, the iOS 6.0 target and the new preference defaults.
+
+## Camera shortcut and icons on iOS 6
+
+`ReplaceCameraGrabber` changes only the image in `SBAwayLockBar`'s native
+`_cameraGrabber` and the completed `SBAwayController` camera-tap action. The
+native pan recognizer, its target, delegate and view geometry remain intact.
+`handleCameraPanGesture:` is not hooked. Turning the option or the tweak off
+restores the saved image and accessibility label. A missing/hidden camera
+shortcut falls back to the existing separate button on a torch-capable device.
+
+Lock-bar hooks access the bar directly. They must never fetch `awayView` during
+its lazy construction: doing so reenters SpringBoard's initializer. Activation
+and preference callbacks install the separate button after construction.
+
+The original bolt remains the default. `TorchLockIcons.h` draws Classic, Metal,
+Outline and Light Bulb using UIKit/CoreGraphics available on iOS 6. Artwork is
+cached per style and torch state at the native display scale. Camera-slot images
+use the original 30×52-point canvas, preserving aspect ratio and gesture geometry.
+All style choices take effect via the existing Darwin preference notification.
+
+The debug probe checks completed/canceled taps and feeds pan states through the
+original camera callback to verify camera launch. It also compares recognizer
+identities/delegates and image fingerprints across live changes and restoration.
+These callback tests do not synthesize physical touchscreen input.
+
 ## Installing by hand
 
 `make deploy` does this. Spelled out:

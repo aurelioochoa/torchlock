@@ -1,6 +1,7 @@
 # Theos build output
 tweak/.theos/
 tweak/packages/
+__pycache__/
 *.deb
 
 # Third-party binaries pulled off a device for analysis never belong here

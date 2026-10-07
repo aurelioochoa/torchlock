@@ -18,10 +18,16 @@ Built and tested on an **iPhone 4 (iPhone3,2), iOS 6.1.3**.
 
 ## What it does
 
-- **A button on the lock screen**, just above the left end of the unlock
+- **A button on the lock screen**, just above the left or right end of the unlock
   slider. It's always visible by default, or it can appear only after you
   double-click Home. It shows a dark circle when the torch is off, and a white
   circle with a yellow bolt when it is on.
+- **An optional camera-icon replacement.** Tap the camera shortcut to toggle
+  the torch and swipe up from the same spot to open the camera. The native camera
+  gesture stays in place; enabling this option removes the separate torch button.
+- **Five selectable icon styles:** the original bolt, an embossed **iOS 6
+  Classic** flashlight, **Metal**, **Outline**, and **Light Bulb**. Each has
+  distinct off/on artwork and applies to both buttons and the camera shortcut.
 - **Drives the torch directly.** It sets `torchMode` on the camera device, so
   no `AVCaptureSession` runs, nothing blocks SpringBoard's main thread and the
   camera doesn't stream frames while the light is on.
@@ -31,6 +37,10 @@ Built and tested on an **iPhone 4 (iPhone3,2), iOS 6.1.3**.
   [Settings](#settings).
 - **A Settings pane**, like FlashLock's. **Settings → TorchLock** has a switch
   that turns the whole tweak on or off, plus the lock screen options.
+- **An optional Notification Center button**, off by default, for toggling
+  while unlocked. It stays at the bottom, just above the grabber, even while the
+  list scrolls. Only the icon is drawn; the native background and shading remain.
+  Choose **Left** or **Right** for both buttons in Settings.
 - **Adds an Activator action.** "Toggle Flashlight" (`com.aurelio.torchlock.toggle`)
   appears under *TorchLock* in Activator, so you can give it a gesture for use
   while unlocked.
@@ -112,7 +122,7 @@ arrow next to your network.
 ```sh
 ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa root@PHONE_IP \
     'cat > /tmp/torchlock.deb && dpkg -i /tmp/torchlock.deb && killall -9 SpringBoard' \
-    < tweak/packages/com.aurelio.torchlock_1.0.1_iphoneos-arm.deb
+    < tweak/packages/com.aurelio.torchlock_1.3.0_iphoneos-arm.deb
 ```
 
 The phone's OpenSSH only offers an `ssh-rsa` host key, which current OpenSSH
@@ -132,19 +142,29 @@ mode, which shows as a "Safe Mode" alert after a respring.
 
 ### Settings
 
-Open **Settings → TorchLock**. Every switch is on by default, and changes take
-effect straight away, with no respring.
+![Five TorchLock icon styles, rendered on iOS 6 in off, on and camera-shortcut states](docs/assets/icon-styles.png)
 
-| Switch | What it does |
+Open **Settings → TorchLock**. Changes take effect straight away, with no
+respring. The existing switches default to on; Notification Center and camera
+replacement default to off, button position defaults to Left, and icon style
+defaults to Original Bolt.
+
+| Setting | What it does |
 | --- | --- |
-| **Enabled** | Turns TorchLock on or off. When it's off, there's no lock screen button and the Activator action is ignored. A torch TorchLock lit is also turned off. |
+| **Enabled** | Turns TorchLock on or off. When it's off, both buttons are removed and the Activator action is ignored. A lit torch is also turned off. |
 | **Always Show Button** | When this is off, the button stays hidden until you double-click Home on the lock screen. While the torch is on, the button always shows, so you can turn it off. |
 | **Turn Off on Unlock** | Turns the torch off when you unlock. Switch it off to keep the light on after unlocking. |
+| **Replace Camera Icon** | Off by default. Puts the torch in the native camera shortcut: tap to toggle, swipe up for camera. Removes the separate lock screen button. The camera shortcut stays visible regardless of Always Show Button; if the native shortcut is unavailable, the separate torch button remains. |
+| **Show in Notification Center** | Off by default. Pins a torch button at the bottom of Notification Center while unlocked, just above the grabber. The list can scroll its final notification above the button. Turning this option off removes the row and keeps the current torch state. |
+| **Button Position** | **Left** (default) or **Right**, for the separate lock screen and Notification Center buttons. The camera shortcut keeps its native position. |
+| **Icon Style** | **Original Bolt** (default), **iOS 6 Classic**, **Metal**, **Outline**, or **Light Bulb**. Updates the lock screen, camera replacement and Notification Center immediately. Yellow indicates the torch is on. |
 
 The values are stored in
 `/var/mobile/Library/Preferences/com.aurelio.torchlock.plist` under the keys
-`Enabled`, `AlwaysShowButton` and `TurnOffOnUnlock`. Deleting the file
-restores the defaults.
+`Enabled`, `AlwaysShowButton`, `TurnOffOnUnlock`, `ShowInNotificationCenter`,
+`ButtonPosition` (`left` or `right`), `ReplaceCameraGrabber`, and `IconStyle`
+(`bolt`, `classic`, `metal`, `outline`, or `bulb`). Deleting the file restores
+the defaults. Unknown icon styles fall back to the original bolt.
 
 FlashLock had a fourth switch, *Hide Slider Label*. TorchLock doesn't need it:
 FlashLock's button sat inside the unlock slider and covered its text, but
@@ -154,8 +174,8 @@ TorchLock's sits above it.
 **Settings → Activator**, choose where the gesture should work (anywhere, the
 home screen, in apps or the lock screen), and pick an event, for example a
 short hold of Volume Up. Then choose **Toggle Flashlight** under **TorchLock**.
-This works with the phone unlocked too, where the lock screen button isn't
-available.
+This works with the phone unlocked too. You can also enable **Show in
+Notification Center** for a button while unlocked.
 
 ### Uninstall
 
@@ -178,9 +198,18 @@ Cydia if you want it back.
 | `make uninstall` | Remove TorchLock from the phone and respring |
 | `make cydia` | Copy the release package into `repo/debs/` and regenerate the Cydia index |
 
-There are no unit tests, because the tweak only runs inside SpringBoard.
-Testing it means running it on a device: `make smoke`, or in a debug build,
+Testing runs inside SpringBoard on a device: `make smoke`, or in a debug build,
 `activator send com.aurelio.torchlock.debug` followed by reading `/tmp/torchlock-debug.txt`.
+The debug dump includes both buttons and the Notification Center view tree.
+
+After installing a `DEBUG=1` package, run `python3 scripts/device-check.py` for
+automated device checks of both buttons, live settings, torch state, bottom
+placement, transparent background, touch handling and scroll-space restoration. It uses SSH over port 2222, preserves the preference file and
+restores the original torch and lock state. For password access, set
+`TORCHLOCK_SSH_PASSWORD` in your environment; `sshpass` is required in that case.
+The test probe is included only in debug packages. To validate release contents
+and the iOS 6 deployment target, run `python3 scripts/package-check.py` after
+building both a debug and a release package.
 
 [`docs/BUILDING.md`](docs/BUILDING.md) explains the toolchain choices (why the
 10.3 SDK, why `-Wl,-U,_memset`, why gzip packages).
@@ -213,12 +242,31 @@ All on the iPhone 4 / iOS 6.1.3 above:
   - With **Always Show Button** off, the button was hidden, showed while the
     torch was on, and hid again once it was off.
   - Deleting the preference file brought the defaults back.
+- Device checks also verified:
+  - Camera replacement toggles the real torch on completed taps, leaves canceled
+    taps/pans unchanged, and opens the camera through the original pan callback.
+    Native recognizers and delegates remain intact during live preference changes.
+  - The replacement survives native lock-screen recreation; disabling it or the
+    tweak restores the camera image, and disabling replacement restores the
+    separate torch button.
+  - All five icons update live on the lock screen, camera shortcut and Notification
+    Center. Each additional design has distinct off/on artwork; unknown style
+    values fall back to the original bolt.
+  - Notification Center defaults off; enabling it adds one row and disabling
+    it restores the original scroll space without turning off a lit torch.
+  - Both buttons toggle the real torch, and each reflects changes from the other.
+  - Left/Right updates both buttons without a respring.
+  - Master disable removes both buttons, turns the torch off and ignores Activator.
+  - Existing table headers stay in place when the option is enabled or disabled.
+  - Unlock turns the torch off by default; disabling **Turn Off on Unlock**
+    keeps it lit and Notification Center shows the current state.
+  - The Settings pane opens and renders inside the Settings app.
 
 Not yet checked by a test:
 
-- the unlock-turns-it-off path, which hooks `-[SBAwayController didFinishAnimatingOut]`
 - the Home double-click reveal, which hooks `-[SBAwayController handleMenuButtonDoubleTap]`
-- the Settings pane drawn inside the Settings app
+- changing the new options by tapping the Settings controls (the automated
+  checks write preferences and post the same change notification)
 
 ## Layout
 
@@ -227,6 +275,7 @@ Makefile          standard verbs; wraps the Theos project
 tweak/
   Makefile        Theos project (target, arch, flags)
   Tweak.x         the tweak (Logos)
+  TorchLockIcons.h native-scale vector drawing for the four additional icon styles
   TorchLock.plist Substrate filter: SpringBoard only
   control         Debian package metadata
   layout/Library/PreferenceLoader/Preferences/TorchLock/
@@ -243,6 +292,10 @@ repo/             the Cydia source, served by GitHub Pages
   index.html      what Safari shows at the source URL
 scripts/
   cydia-index.py  builds the index (stdlib only, no dpkg needed)
+  device-check.py device integration checks (requires an installed debug build)
+  package-check.py release contents and iOS 6 compatibility checks
+tests/
+  DeviceProbe.m  debug-only SpringBoard integration probe
 index.html        Pages root, redirects to repo/
 .nojekyll         serve files as-is, no Jekyll
 ```

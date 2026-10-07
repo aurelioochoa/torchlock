@@ -19,7 +19,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Turning TorchLock off removes the lock screen button, ignores the Activator action and turns off the torch if it is on.</string>
+			<string>Turning TorchLock off removes both buttons, ignores the Activator action and turns off the torch if it is on.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -68,6 +68,124 @@
 			<string>TurnOffOnUnlock</string>
 			<key>default</key>
 			<true/>
+			<key>PostNotification</key>
+			<string>com.aurelio.torchlock/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Camera Shortcut</string>
+			<key>footerText</key>
+			<string>Tap the camera icon to toggle the flashlight. Swipe up from the same spot to open the camera. The replacement stays visible; Always Show Button and Button Position apply to the separate lock screen button.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Replace Camera Icon</string>
+			<key>key</key>
+			<string>ReplaceCameraGrabber</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.aurelio.torchlock</string>
+			<key>PostNotification</key>
+			<string>com.aurelio.torchlock/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Notification Center</string>
+			<key>footerText</key>
+			<string>Add a flashlight button at the bottom of Notification Center while the phone is unlocked. Off by default. Changes take effect without a respring.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Show in Notification Center</string>
+			<key>defaults</key>
+			<string>com.aurelio.torchlock</string>
+			<key>key</key>
+			<string>ShowInNotificationCenter</string>
+			<key>default</key>
+			<false/>
+			<key>PostNotification</key>
+			<string>com.aurelio.torchlock/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Button Position</string>
+			<key>footerText</key>
+			<string>Choose the side for the separate lock screen and Notification Center buttons. The camera replacement stays in the native camera position.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>label</key>
+			<string>Button Position</string>
+			<key>defaults</key>
+			<string>com.aurelio.torchlock</string>
+			<key>key</key>
+			<string>ButtonPosition</string>
+			<key>default</key>
+			<string>left</string>
+			<key>validTitles</key>
+			<array>
+				<string>Left</string>
+				<string>Right</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>left</string>
+				<string>right</string>
+			</array>
+			<key>PostNotification</key>
+			<string>com.aurelio.torchlock/prefs-changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Icon Style</string>
+			<key>footerText</key>
+			<string>Choose a design for the lock screen, camera shortcut and Notification Center. Yellow indicates that the flashlight is on. Changes apply immediately.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>label</key>
+			<string>Icon Style</string>
+			<key>key</key>
+			<string>IconStyle</string>
+			<key>default</key>
+			<string>bolt</string>
+			<key>validTitles</key>
+			<array>
+				<string>Original Bolt</string>
+				<string>iOS 6 Classic</string>
+				<string>Metal</string>
+				<string>Outline</string>
+				<string>Light Bulb</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>bolt</string>
+				<string>classic</string>
+				<string>metal</string>
+				<string>outline</string>
+				<string>bulb</string>
+			</array>
+			<key>defaults</key>
+			<string>com.aurelio.torchlock</string>
 			<key>PostNotification</key>
 			<string>com.aurelio.torchlock/prefs-changed</string>
 		</dict>

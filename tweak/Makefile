@@ -12,6 +12,7 @@ TorchLock_CFLAGS = -Wno-deprecated-declarations
 TorchLock_LDFLAGS = -Wl,-U,_memset
 ifeq ($(DEBUG),1)
 TorchLock_CFLAGS += -DTL_DEBUG=1
+TorchLock_FILES += ../tests/DeviceProbe.m
 endif
 
 include $(THEOS_MAKE_PATH)/tweak.mk
